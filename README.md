@@ -21,6 +21,10 @@ This project implements a fully **serverless** data pipeline on Google Cloud Pla
     -   **BigQuery**: Enables analysis of petabytes of data without infrastructure management. The use of `raw` and `staging` schemas follows best practices.
     -   **Cloud Scheduler**: Provides a simple and reliable orchestration mechanism to trigger the pipelines.
 -   **Incremental Ingestion Logic**: The `postgres_to_bq.py` script implements incremental logic. On the first run, it loads all the data. On subsequent runs, it queries the destination table in BigQuery for the timestamp of the last record and ingests only new data from the source database.
+-  **Security**: Authentication is managed through GCP service accounts with specific roles (Cloud SQL Client and BigQuery Data Editor). Communication between Cloud Run and Cloud SQL is secure and encrypted through the Cloud SQL Proxy, which is automatically handled by the Python connector.
+
+-   **Production Deployment**: Deployment is performed using the gcloud CLI, which automates the creation of Docker images and the deployment of services to Cloud Run and Cloud Scheduler. Credential configuration is securely passed as environment variables to the Cloud Run services, ensuring no sensitive information is exposed in the code.
+
 -   **Transformations**: Transformations are performed in BigQuery. The view `users_with_crypto_data` joins the data from `raw.users` and `raw.crypto_prices` tables:
 
 ```sql
@@ -38,7 +42,4 @@ CROSS JOIN
   `testintell.raw.crypto_prices` AS t2
 WHERE
   t2.ingestion_time = (SELECT MAX(ingestion_time) FROM `testintell.raw.crypto_prices`);
-```sql
--   **Security**: Authentication is managed through GCP service accounts with specific roles (Cloud SQL Client and BigQuery Data Editor). Communication between Cloud Run and Cloud SQL is secure and encrypted through the Cloud SQL Proxy, which is automatically handled by the Python connector.
 
--   **Production Deployment**: Deployment is performed using the gcloud CLI, which automates the creation of Docker images and the deployment of services to Cloud Run and Cloud Scheduler. Credential configuration is securely passed as environment variables to the Cloud Run services, ensuring no sensitive information is exposed in the code.
